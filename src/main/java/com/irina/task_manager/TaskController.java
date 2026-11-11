@@ -1,5 +1,7 @@
 package com.irina.task_manager;
 
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -8,19 +10,36 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    private final TaskRepository repository;
+    private final TaskService service;
 
-    public TaskController(TaskRepository repository) {
-        this.repository = repository;
+    public TaskController(TaskService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public List<Task> getAll() {
-        return repository.findAll();
+    public List<TaskResponse> getAll() {
+        return service.getAll();
+    }
+
+    @GetMapping("/{id}")
+    public TaskResponse getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
     @PostMapping
-    public Task create(@RequestBody Task task) {
-        return repository.save(task);
+    @ResponseStatus(HttpStatus.CREATED)
+    public TaskResponse create(@Valid @RequestBody TaskRequest request) {
+        return service.create(request);
+    }
+
+    @PutMapping("/{id}")
+    public TaskResponse update(@PathVariable Long id, @Valid @RequestBody TaskRequest request) {
+        return service.update(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
     }
 }
