@@ -16,11 +16,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
 
+
     @Mock
     private TaskRepository repository;
 
     @InjectMocks
     private TaskService service;
+
+    @Mock
+    private ProjectRepository projectRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Test
     void getById_returnsTask_whenExists() {
@@ -43,7 +50,7 @@ class TaskServiceTest {
 
     @Test
     void create_savesTaskWithGivenData() {
-        TaskRequest request = new TaskRequest("New task", "Description", TaskStatus.IN_PROGRESS);
+        TaskRequest request = new TaskRequest("New task", "Description", TaskStatus.IN_PROGRESS, null, null);
         when(repository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
         TaskResponse response = service.create(request);
@@ -55,7 +62,7 @@ class TaskServiceTest {
 
     @Test
     void create_usesDefaultStatus_whenStatusIsNull() {
-        TaskRequest request = new TaskRequest("Task", null, null);
+        TaskRequest request = new TaskRequest("Task", null, null, null, null);
         when(repository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
 
         TaskResponse response = service.create(request);
@@ -82,7 +89,7 @@ class TaskServiceTest {
         task.setTitle("Old");
         when(repository.findById(1L)).thenReturn(Optional.of(task));
 
-        TaskResponse response = service.update(1L, new TaskRequest("New", "Desc", TaskStatus.DONE));
+        TaskResponse response = service.update(1L, new TaskRequest("New", "Desc", TaskStatus.DONE, null, null));
 
         assertEquals("New", response.title());
         assertEquals(TaskStatus.DONE, response.status());

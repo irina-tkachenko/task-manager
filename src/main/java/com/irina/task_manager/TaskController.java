@@ -3,7 +3,8 @@ package com.irina.task_manager;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
@@ -17,8 +18,10 @@ public class TaskController {
     }
 
     @GetMapping
-    public List<TaskResponse> getAll() {
-        return service.getAll();
+    public Page<TaskResponse> search(@RequestParam(required = false) TaskStatus status,
+                                     @RequestParam(required = false) Long projectId,
+                                     Pageable pageable) {
+        return service.search(status, projectId, pageable);
     }
 
     @GetMapping("/{id}")
