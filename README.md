@@ -1,50 +1,38 @@
 # Task Manager
 
-REST API для управления задачами, проектами и пользователями.
+A REST API for managing tasks, projects and users, with asynchronous notifications when a task status changes.
 
-## Стек
-- Java 21, Spring Boot, Spring Data JPA (Hibernate)
-- PostgreSQL, Flyway (миграции)
+## Tech stack
+- Java 17, Spring Boot, Spring Data JPA (Hibernate)
+- PostgreSQL, Flyway (database migrations)
+- RabbitMQ (messaging), `@Async` with a custom thread pool
 - JUnit 5, Mockito
 - Docker Compose
 
-## Возможности
-- CRUD для задач, создание проектов и пользователей
-- Связи: задача принадлежит проекту и имеет исполнителя
-- Фильтрация по статусу и проекту, пагинация
-- Валидация входных данных и единая обработка ошибок (400, 404)
-- Unit-тесты сервисного слоя
+## Features
+- CRUD for tasks; create projects and users
+- Entity relations: a task belongs to a project and has an assignee (`@ManyToOne` / `@OneToMany`)
+- Filtering by status and project, pagination
+- Input validation and centralized error handling (400, 404)
+- When a task status changes, an event is published to RabbitMQ and handled asynchronously in a separate thread
+- Unit tests for the service layer
 
-## Запуск
-1. Запустить базу данных:
+## Architecture
+```
+Controller -> Service -> Repository -> PostgreSQL
+                  |
+                  v
+          TaskEventPublisher -> RabbitMQ -> TaskEventListener -> NotificationService (@Async)
+```
+
+## Getting started
+1. Start PostgreSQL and RabbitMQ:
    ```
    docker compose up -d
    ```
-2. Запустить приложение:
+2. Run the application:
    ```
    ./mvnw spring-boot:run
    ```
-3. API доступно на `http://localhost:8080`
-
-## Тесты
-```
-./mvnw test
-```
-
-## Примеры запросов
-```
-curl -X POST http://localhost:8080/api/projects -H "Content-Type: application/json" -d '{"name":"Website"}'
-curl -X POST http://localhost:8080/api/tasks -H "Content-Type: application/json" -d '{"title":"Design homepage","status":"IN_PROGRESS","projectId":1}'
-curl "http://localhost:8080/api/tasks?status=IN_PROGRESS&page=0&size=5"
-```
-
-## Эндпоинты
-| Метод | URL | Описание |
-|-------|-----|----------|
-| GET | /api/tasks | Список задач (фильтры status, projectId, пагинация) |
-| GET | /api/tasks/{id} | Задача по id |
-| POST | /api/tasks | Создать задачу |
-| PUT | /api/tasks/{id} | Обновить задачу |
-| DELETE | /api/tasks/{id} | Удалить задачу |
-| GET/POST | /api/projects | Проекты |
-| GET/POST | /api/users | Пользователи |
+3. API: `http://localhost:8080`
+4. RabbitMQ
