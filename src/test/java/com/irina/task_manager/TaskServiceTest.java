@@ -11,23 +11,27 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TaskServiceTest {
 
-
     @Mock
     private TaskRepository repository;
-
-    @InjectMocks
-    private TaskService service;
 
     @Mock
     private ProjectRepository projectRepository;
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private TaskEventPublisher publisher;
+
+    @InjectMocks
+    private TaskService service;
 
     @Test
     void getById_returnsTask_whenExists() {
@@ -93,6 +97,7 @@ class TaskServiceTest {
 
         assertEquals("New", response.title());
         assertEquals(TaskStatus.DONE, response.status());
+        verify(publisher).publishStatusChanged(isNull(), eq(TaskStatus.TODO), eq(TaskStatus.DONE));
     }
 
     @Test

@@ -13,13 +13,16 @@ public class TaskService {
     private final TaskRepository repository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final TaskEventPublisher publisher;
 
     public TaskService(TaskRepository repository,
                        ProjectRepository projectRepository,
-                       UserRepository userRepository) {
+                       UserRepository userRepository,
+                       TaskEventPublisher publisher) {
         this.repository = repository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.publisher = publisher;
     }
 
     @Transactional(readOnly = true)
@@ -52,10 +55,15 @@ public class TaskService {
         return TaskResponse.from(repository.save(task));
     }
 
+
     @Transactional
     public TaskResponse update(Long id, TaskRequest request) {
         Task task = find(id);
+        TaskStatus oldStatus = task.getStatus();
         apply(task, request);
+        if (oldStatus != task.getStatus()) {
+            publisher.publishStatusChanged(task.getId(), oldStatus, task.getStatus());
+        }
         return TaskResponse.from(task);
     }
 
